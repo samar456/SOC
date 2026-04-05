@@ -2,15 +2,15 @@ name: Weekly Release
 
 on:
   schedule:
-    - cron: '0 20 * * 5'
-  workflow_dispatch: 
+    - cron: '0 20 * * 5' # Every Friday at 8PM UTC
+  workflow_dispatch: # Allows you to run it manually for testing
 
 permissions:
   contents: write
   pull-requests: write
 
 jobs:
-  create-pull-request:
+  auto-release:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Code
@@ -24,14 +24,14 @@ jobs:
         uses: peter-evans/create-pull-request@v6
         with:
           token: ${{ secrets.BOT_TOKEN }}
-          branch: release-action-branch
+          branch: automated-release-branch
           base: main
-          title: "Weekly Release: Merge Develop into Main"
+          title: "Weekly Release: Merge Develop into Main ($(date +'%Y-%m-%d'))"
           body: "Automated merge of develop into main for the weekly release."
           delete-branch: true
 
       - name: Enable Pull Request Automerge
-        if: steps.cpr.outputs.pull-request-operation == 'created'
+        if: steps.cpr.outputs.pull-request-number
         uses: peter-evans/enable-pull-request-automerge@v3
         with:
           token: ${{ secrets.BOT_TOKEN }}
