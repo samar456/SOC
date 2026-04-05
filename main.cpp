@@ -16,6 +16,7 @@ SC_MODULE(Scaler)
                   << sc_time_stamp() << std::endl;
         sc_stop();
         wait(10, SC_NS);
+        wait(10, SC_NS);
     
         std::cout << "Finished at "
                   << sc_time_stamp() << std::endl;
