@@ -13,7 +13,7 @@ SC_MODULE(Scaler)
     void do_operation()
     {
         std::cout << "Hello SystemC! Time = "
-                  << sc_time_stamp() << std::endl;
+                  << sc_time_stamp() << std::endl
         sc_stop();
         wait(10, SC_NS);
     
