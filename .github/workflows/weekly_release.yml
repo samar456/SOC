@@ -16,7 +16,7 @@ jobs:
         with:
           ref: main
           fetch-depth: 0
-          token: ${{ secrets.GITHUB_TOKEN }}
+          token: ${{ secrets.BOT_TOKEN }}
       - name: Merge Develop
         run: |
           git config --global user.name "github-actions[bot]"
