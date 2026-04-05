@@ -1,0 +1,40 @@
+name: SOC Build
+
+on:
+  push:
+    branches:
+      - main
+      - develop
+  pull_request:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Install build tools
+      run: |
+        sudo apt update
+        sudo apt install -y build-essential cmake wget
+
+    - name: Install SystemC
+      run: |
+        wget https://github.com/accellera-official/systemc/archive/refs/tags/2.3.4.tar.gz
+        tar -xzf 2.3.4.tar.gz
+        cd systemc-2.3.4
+        mkdir build
+        cd build
+        cmake ..
+        make -j4
+        sudo make install
+
+    - name: Build Project
+      run: |
+        g++ main.cpp -lsystemc -o soc
+
+    - name: Run Executable
+      run: |
+        ./soc
