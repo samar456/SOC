@@ -6,6 +6,9 @@ on:
       - main
       - develop
   pull_request:
+    branches:
+      - main
+      - develop
 
 jobs:
   build:
@@ -15,22 +18,32 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v4
 
-    - name: Install build tools
+    - name: Install dependencies
       run: |
         sudo apt update
         sudo apt install -y build-essential cmake wget
 
+    # 1. CACHE SYSTEMC: This saves ~3-5 minutes per run
+    - name: Cache SystemC
+      id: cache-systemc
+      uses: actions/cache@v4
+      with:
+        path: /opt/systemc
+        key: ${{ runner.os }}-systemc-2.3.4
+
+    # 2. INSTALL SYSTEMC (Only runs if cache is missing)
     - name: Install SystemC
+      if: steps.cache-systemc.outputs.cache-hit != 'true'
       run: |
         wget https://github.com/accellera-official/systemc/archive/refs/tags/2.3.4.tar.gz
         tar -xzf 2.3.4.tar.gz
         cd systemc-2.3.4
-        mkdir build
-        cd build
+        mkdir build && cd build
         cmake .. -DCMAKE_INSTALL_PREFIX=/opt/systemc -DCMAKE_CXX_STANDARD=17
-        make -j8
+        make -j$(nproc)
         sudo make install
 
+    # 3. BUILD YOUR PROJECT
     - name: Build Project
       run: |
         g++ main.cpp \
@@ -42,6 +55,6 @@ jobs:
         -lm \
         -o soc
 
+    # 4. RUN SIMULATION
     - name: Run Executable
-      run: |
-        ./soc
+      run: ./soc
