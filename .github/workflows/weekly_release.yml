@@ -1,39 +1,32 @@
 name: Weekly Release
-
 on:
   schedule:
-    - cron: '0 20 * * 5' # Every Friday at 8PM UTC
-  workflow_dispatch: # Allows you to run it manually for testing
-
-permissions:
-  contents: write
-  pull-requests: write
+    - cron: '0 20 * * 5'
+  workflow_dispatch: 
 
 jobs:
-  auto-release:
+  merge:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout Code
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
         with:
-          token: ${{ secrets.BOT_TOKEN }}
           fetch-depth: 0
-
-      - name: Create Pull Request
-        id: cpr
-        uses: peter-evans/create-pull-request@v6
-        with:
           token: ${{ secrets.BOT_TOKEN }}
-          branch: automated-release-branch
-          base: main
-          title: "Weekly Release: Merge Develop into Main ($(date +'%Y-%m-%d'))"
-          body: "Automated merge of develop into main for the weekly release."
-          delete-branch: true
 
-      - name: Enable Pull Request Automerge
-        if: steps.cpr.outputs.pull-request-number
-        uses: peter-evans/enable-pull-request-automerge@v3
-        with:
-          token: ${{ secrets.BOT_TOKEN }}
+      - name: Force Merge Develop into Main
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          
+          # Fetch all branches
+          git fetch origin main:main
+          git fetch origin develop:develop
+          
+          git checkout main
+          # Merge develop into main, favoring develop's changes if there's a conflict
+          git merge develop --no-ff --strategy-option theirs -m "chore: weekly release $(date +'%Y-%m-%d')"
+          
+          # Push directly to the protected branch
+          git push origin main          token: ${{ secrets.BOT_TOKEN }}
           pull-request-number: ${{ steps.cpr.outputs.pull-request-number }}
           merge-method: merge
