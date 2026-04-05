@@ -14,8 +14,7 @@ SC_MODULE(Scaler)
     {
         std::cout << "Hello SystemC! Time = "
                   << sc_time_stamp() << std::endl;
-        sc_stop();
-        wait(10, SC_NS);
+
         wait(10, SC_NS);
     
         std::cout << "Finished at "
