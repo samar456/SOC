@@ -27,8 +27,8 @@ jobs:
         cd systemc-2.3.4
         mkdir build
         cd build
-        cmake ..
-        make -j4
+        cmake .. -DCMAKE_INSTALL_PREFIX=/opt/systemc -DCMAKE_CXX_STANDARD=17
+        make -j8
         sudo make install
 
     - name: Build Project
