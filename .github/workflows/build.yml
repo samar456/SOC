@@ -33,7 +33,13 @@ jobs:
 
     - name: Build Project
       run: |
-        g++ main.cpp -lsystemc -o soc
+        g++ main.cpp \
+        -I/opt/systemc/include \
+        -L/opt/systemc/lib \
+        -Wl,-rpath=/opt/systemc/lib \
+        -lsystemc \
+        -lm \
+        -o soc
 
     - name: Run Executable
       run: |
