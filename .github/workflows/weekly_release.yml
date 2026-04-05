@@ -2,7 +2,7 @@ name: Weekly Release
 
 on:
   schedule:
-    - cron: '0 20 * * 5' # Every Friday at 8PM UTC
+    - cron: '0 20 * * 5'
   workflow_dispatch: 
 
 permissions:
@@ -10,33 +10,30 @@ permissions:
   pull-requests: write
 
 jobs:
-  merge:
+  create-pull-request:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
         with:
           token: ${{ secrets.BOT_TOKEN }}
-          fetch-depth: 0 # Fetches all history for all branches
+          fetch-depth: 0
 
-      - name: Sync and Merge
-        run: |
-          # 1. Identity setup
-          git config --global user.name "github-actions[bot]"
-          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+      - name: Create Pull Request
+        id: cpr
+        uses: peter-evans/create-pull-request@v6
+        with:
+          token: ${{ secrets.BOT_TOKEN }}
+          branch: release-action-branch
+          base: main
+          title: "Weekly Release: Merge Develop into Main"
+          body: "Automated merge of develop into main for the weekly release."
+          delete-branch: true
 
-          # 2. Ensure local main and develop are up to date
-          git fetch origin main:main
-          git fetch origin develop:develop
-
-          # 3. Switch to main
-          git checkout main
-
-          # 4. Merge develop into main
-          # Using --strategy-option theirs resolves minor conflicts by favoring develop
-          git merge develop --no-ff --strategy-option theirs -m "chore: weekly release $(date +'%Y-%m-%d')"
-
-          # 5. Push to Protected Branch
-          # This works because you are using BOT_TOKEN (Admin PAT) 
-          # and "Enforce for Administrators" is UNCHECKED on GitHub
-          git push origin main
+      - name: Enable Pull Request Automerge
+        if: steps.cpr.outputs.pull-request-operation == 'created'
+        uses: peter-evans/enable-pull-request-automerge@v3
+        with:
+          token: ${{ secrets.BOT_TOKEN }}
+          pull-request-number: ${{ steps.cpr.outputs.pull-request-number }}
+          merge-method: merge
