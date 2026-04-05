@@ -1,32 +1,39 @@
 name: Weekly Release
+
 on:
   schedule:
-    - cron: '0 20 * * 5'
+    - cron: '0 20 * * 5' # Every Friday at 8PM UTC
   workflow_dispatch: 
+
+permissions:
+  contents: write
 
 jobs:
   merge:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout Code
+        uses: actions/checkout@v4
         with:
-          fetch-depth: 0
           token: ${{ secrets.BOT_TOKEN }}
+          fetch-depth: 0 # Fetches full history so branches can see each other
 
-      - name: Force Merge Develop into Main
+      - name: Admin Merge and Push
         run: |
+          # 1. Identity setup
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
-          
-          # Fetch all branches
+
+          # 2. Sync local main with the server
           git fetch origin main:main
-          git fetch origin develop:develop
           
+          # 3. Switch to main
           git checkout main
-          # Merge develop into main, favoring develop's changes if there's a conflict
+
+          # 4. Merge develop into main
+          # '--strategy-option theirs' resolves any tiny conflicts by picking develop's version
           git merge develop --no-ff --strategy-option theirs -m "chore: weekly release $(date +'%Y-%m-%d')"
-          
-          # Push directly to the protected branch
-          git push origin main          token: ${{ secrets.BOT_TOKEN }}
-          pull-request-number: ${{ steps.cpr.outputs.pull-request-number }}
-          merge-method: merge
+
+          # 5. Push to the protected branch
+          # This works because your Bot is in the "Bypass" list in GitHub Settings
+          git push origin main
