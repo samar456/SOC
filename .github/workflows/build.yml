@@ -34,6 +34,7 @@ jobs:
     - name: Build Project
       run: |
         g++ main.cpp \
+        -std=c++17 \
         -I/opt/systemc/include \
         -L/opt/systemc/lib \
         -Wl,-rpath=/opt/systemc/lib \
