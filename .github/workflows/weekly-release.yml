@@ -1,0 +1,23 @@
+name: Weekly Release
+on:
+  schedule:
+    - cron: '0 20 * * 5' # Every Friday at 8PM UTC
+  workflow_dispatch: 
+
+jobs:
+  merge:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+      - name: Merge Develop
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          git fetch origin develop
+          git checkout main
+          git merge origin/develop --no-ff -m "chore: weekly release $(date +'%Y-%m-%d')"
+          git push origin main
